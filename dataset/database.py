@@ -51,7 +51,7 @@ class BaseDatabase(abc.ABC):
         # dummy mask
         img = self.get_image(img_id)
         h, w = img.shape[:2]
-        return np.ones([h,w],np.bool)
+        return np.ones([h,w],np.bool_)
 
 LINEMOD_ROOT='data/LINEMOD'
 class LINEMODDatabase(BaseDatabase):
@@ -103,6 +103,57 @@ class LINEMODDatabase(BaseDatabase):
 
     def get_mask(self, img_id):
         return np.sum(imread(f'{LINEMOD_ROOT}/{self.model_name}/mask/{int(img_id):04}.png'),-1)>0
+
+SPACECRAFT_ROOT='data/SpaceCraft'
+class SpaceCraftCVLabDatabase(BaseDatabase):
+    K=np.array([[1406.708374, 0.000000, 512.000000],
+               [0.000000, 1406.708374, 512.000000],
+               [0.000000, 0.000000, 1.000000]], dtype=np.float32)
+    def __init__(self, database_name):
+        super().__init__(database_name)
+        _, self.model_name = database_name.split('/')
+        self.img_ids = [str(k) for k in range(len(os.listdir(f'{SPACECRAFT_ROOT}/{self.model_name}/images')))]
+        self.model = self.get_ply_model().astype(np.float32)
+        self.object_center = np.zeros(3,dtype=np.float32)
+        self.object_vert = np.asarray([0,0,1],np.float32)
+        self.img_id2depth_range = {}
+        self.img_id2pose = {}
+
+    def get_ply_model(self):
+        fn = Path(f'{SPACECRAFT_ROOT}/{self.model_name}/{self.model_name}.pkl')
+        if fn.exists(): return read_pickle(str(fn))
+        ply = plyfile.PlyData.read(f'{SPACECRAFT_ROOT}/{self.model_name}/{self.model_name}.ply')
+        data = ply.elements[0].data
+        x = data['x']
+        y = data['y']
+        z = data['z']
+        model = np.stack([x, y, z], axis=-1)
+        if model.shape[0]>4096:
+            idxs = np.arange(model.shape[0])
+            np.random.shuffle(idxs)
+            model = model[idxs[:4096]]
+        save_pickle(model, str(fn))
+        return model
+
+    def get_image(self, img_id):
+        return imread(f'{SPACECRAFT_ROOT}/{self.model_name}/images/{int(img_id):04}.png')
+
+    def get_K(self, img_id):
+        return np.copy(self.K)
+
+    def get_pose(self, img_id):
+        if img_id in self.img_id2pose:
+            return self.img_id2pose[img_id]
+        else:
+            pose = np.load(f'{SPACECRAFT_ROOT}/{self.model_name}/pose/pose{int(img_id)}.npy')
+            self.img_id2pose[img_id] = pose
+            return pose
+
+    def get_img_ids(self):
+        return self.img_ids.copy()
+
+    def get_mask(self, img_id):
+        return np.sum(imread(f'{SPACECRAFT_ROOT}/{self.model_name}/mask/{int(img_id):04}.png'),-1)>0
 
 GenMOP_ROOT='data/GenMOP'
 
@@ -213,6 +264,7 @@ class GenMOPDatabase(BaseDatabase):
         object_name, database_type = seq_name.split('-')
         if database_type=='test':
             scale_ratio, transfer_pose = read_pickle(f'{GenMOP_ROOT}/{seq_name}/align.pkl')
+            #print(f"\n\nSCALE RATIO:\n{scale_ratio}, \n\nTRANSFER POSE:\n{transfer_pose}\n\n")
             for img_id in self.get_img_ids():
                 pose = self.poses[img_id]
                 pose_new = pose_compose(transfer_pose, pose)
@@ -301,6 +353,7 @@ def parse_database_name(database_name:str)->BaseDatabase:
         'co3d_resize': Co3DResizeDatabase,
         'shapenet': ShapeNetRenderDatabase,
         'gso': GoogleScannedObjectDatabase,
+        'spacecraft': SpaceCraftCVLabDatabase,
     }
     database_type = database_name.split('/')[0]
     if database_type in name2database:
@@ -312,11 +365,20 @@ def get_database_split(database, split_name):
     if split_name.startswith('linemod'): # linemod_test or linemod_val
         assert(database.database_name.startswith('linemod'))
         model_name = database.database_name.split('/')[1]
-        lines = np.loadtxt(f"{LINEMOD_ROOT}/{model_name}/test.txt",dtype=np.str).tolist()
+        lines = np.loadtxt(f"{LINEMOD_ROOT}/{model_name}/test.txt",dtype=str).tolist()
         que_ids, ref_ids = [], []
         for line in lines: que_ids.append(str(int(line.split('/')[-1].split('.')[0])))
         if split_name=='linemod_val': que_ids = que_ids[::10]
-        lines = np.loadtxt(f"{LINEMOD_ROOT}/{model_name}/train.txt", dtype=np.str).tolist()
+        lines = np.loadtxt(f"{LINEMOD_ROOT}/{model_name}/train.txt", dtype=str).tolist()
+        for line in lines: ref_ids.append(str(int(line.split('/')[-1].split('.')[0])))
+    elif split_name.startswith('spacecraft'): # spacecraft_test or spacecraft_val
+        assert(database.database_name.startswith('spacecraft'))
+        model_name = database.database_name.split('/')[1]
+        lines = np.loadtxt(f"{SPACECRAFT_ROOT}/{model_name}/test.txt", dtype=str).tolist()
+        que_ids, ref_ids = [], []
+        for line in lines: que_ids.append(str(int(line.split('/')[-1].split('.')[0])))
+        if split_name == 'spacecraft_val': que_ids = que_ids[::10]
+        lines = np.loadtxt(f"{SPACECRAFT_ROOT}/{model_name}/train.txt", dtype=str).tolist()
         for line in lines: ref_ids.append(str(int(line.split('/')[-1].split('.')[0])))
     elif split_name=='all':
         ref_ids = que_ids = database.get_img_ids()
@@ -326,6 +388,8 @@ def get_database_split(database, split_name):
 
 def get_ref_point_cloud(database):
     if isinstance(database, LINEMODDatabase):
+        ref_point_cloud = database.model
+    elif isinstance(database, SpaceCraftCVLabDatabase):
         ref_point_cloud = database.model
     elif isinstance(database, GenMOPDatabase):
         ref_point_cloud = database.meta_info.object_point_cloud
@@ -347,6 +411,9 @@ def get_diameter(database):
     if isinstance(database, LINEMODDatabase):
         model_name = database.database_name.split('/')[-1]
         return np.loadtxt(f"{LINEMOD_ROOT}/{model_name}/distance.txt") / 100
+    elif isinstance(database, SpaceCraftCVLabDatabase):
+        model_name = database.database_name.split('/')[-1]
+        return np.loadtxt(f"{SPACECRAFT_ROOT}/{model_name}/distance.txt")
     elif isinstance(database, GenMOPDatabase):
         return 2.0 # we already align and scale it
     elif isinstance(database, GoogleScannedObjectDatabase):
@@ -365,6 +432,8 @@ def get_diameter(database):
 def get_object_center(database):
     if isinstance(database, LINEMODDatabase):
         return database.object_center
+    elif isinstance(database, SpaceCraftCVLabDatabase):
+        return database.object_center
     elif isinstance(database, GenMOPDatabase):
         return database.meta_info.center
     elif isinstance(database, GoogleScannedObjectDatabase):
@@ -382,6 +451,8 @@ def get_object_center(database):
 
 def get_object_vert(database):
     if isinstance(database, LINEMODDatabase):
+        return database.object_vert
+    elif isinstance(database, SpaceCraftCVLabDatabase):
         return database.object_vert
     elif isinstance(database, GenMOPDatabase):
         return np.asarray([0,0,1], np.float32)

@@ -95,6 +95,15 @@ def main(args):
         ref_database_name = object_name+'-ref'
         que_database_name = object_name+'-test'
         que_split = 'all'
+    elif object_name.startswith('spacecraft'):
+        '''
+        ref_database_name = que_database_name = object_name
+        que_split = 'spacecraft_test'
+        '''
+        ref_database_name = object_name + '-ref'
+        que_database_name = object_name + '-test'
+        que_split = 'all'
+
     else:
         raise NotImplementedError
 
