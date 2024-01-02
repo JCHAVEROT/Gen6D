@@ -106,9 +106,6 @@ class LINEMODDatabase(BaseDatabase):
 
 SPACECRAFT_ROOT='data/SpaceCraft'
 class SpaceCraftCVLabDatabase(BaseDatabase):
-    K=np.array([[1406.708374, 0.000000, 512.000000],
-               [0.000000, 1406.708374, 512.000000],
-               [0.000000, 0.000000, 1.000000]], dtype=np.float32)
     def __init__(self, database_name):
         super().__init__(database_name)
         _, self.model_name = database_name.split('/')
@@ -118,6 +115,13 @@ class SpaceCraftCVLabDatabase(BaseDatabase):
         self.object_vert = np.asarray([0,0,1],np.float32)
         self.img_id2depth_range = {}
         self.img_id2pose = {}
+        object_name, database_type = self.model_name.split('-')
+        self.K=np.array([[1406.708374, 0.000000, 512.000000],
+               [0.000000, 1406.708374, 512.000000],
+               [0.000000, 0.000000, 1.000000]], dtype=np.float32)
+        if database_type == 'test':
+            self.K /= 4
+            self.K[2, 2] = 1
 
     def get_ply_model(self):
         fn = Path(f'{SPACECRAFT_ROOT}/{self.model_name}/{self.model_name}.pkl')
