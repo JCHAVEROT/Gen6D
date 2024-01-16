@@ -158,7 +158,8 @@ def main(args):
     msg_pr = f'{object_name:10} {est_name:20} '
     msg_pr=get_eval_msg(pose_pr_list, msg_pr)
     print(msg_pr)
-    with open('data/performance.log','a') as f: f.write(msg_pr)
+    with open('data/performance.log','a') as f:
+        f.write(msg_pr + '\n')
 
 if __name__=="__main__":
     parser = argparse.ArgumentParser()

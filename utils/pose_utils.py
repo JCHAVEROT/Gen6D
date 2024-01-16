@@ -207,12 +207,18 @@ def compute_metrics_impl(object_pts, diameter, pose_gt_list, pose_pr_list, Ks, s
     pose_errs = np.asarray(pose_errs)
     results = {
         'add-0.1d': np.mean(obj_errs<(diameter*0.1)),
+        'add-0.15d': np.mean(obj_errs<(diameter*0.15)),
+        'add-0.2d': np.mean(obj_errs<(diameter*0.2)),
+        'add-0.25d': np.mean(obj_errs<(diameter*0.25)),
         'prj-5':np.mean(prj_errs<5),
     }
     results['obj_errs'] = np.array2string(obj_errs)
     if symmetric:
         obj_errs_sym = np.asarray(obj_errs_sym)
         results['add-0.1d-sym']=np.mean(obj_errs_sym<(diameter*0.1))
+        results['add-0.15d-sym']=np.mean(obj_errs_sym<(diameter*0.15))
+        results['add-0.2d-sym']=np.mean(obj_errs_sym<(diameter*0.2))
+        results['add-0.25d-sym']=np.mean(obj_errs_sym<(diameter*0.25))
         results['obj_errs_sym'] = np.array2string(obj_errs_sym)
     return results
 
