@@ -209,9 +209,11 @@ def compute_metrics_impl(object_pts, diameter, pose_gt_list, pose_pr_list, Ks, s
         'add-0.1d': np.mean(obj_errs<(diameter*0.1)),
         'prj-5':np.mean(prj_errs<5),
     }
+    results['obj_errs'] = np.array2string(obj_errs)
     if symmetric:
         obj_errs_sym = np.asarray(obj_errs_sym)
         results['add-0.1d-sym']=np.mean(obj_errs_sym<(diameter*0.1))
+        results['obj_errs_sym'] = np.array2string(obj_errs_sym)
     return results
 
 def pose_sim_to_pose_rigid(pose_sim_in_to_que, pose_in, K_que, K_in, center):

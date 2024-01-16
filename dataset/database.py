@@ -120,7 +120,8 @@ class SpaceCraftCVLabDatabase(BaseDatabase):
                [0.000000, 1406.708374, 512.000000],
                [0.000000, 0.000000, 1.000000]], dtype=np.float32)
         if database_type == 'test':
-            self.K /= 4
+            resize_factor = np.loadtxt(f"{SPACECRAFT_ROOT}/{self.model_name}/resize_factor.txt")
+            self.K *= resize_factor
             self.K[2, 2] = 1
 
     def get_ply_model(self):
