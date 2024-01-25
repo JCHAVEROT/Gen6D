@@ -156,6 +156,14 @@ def compute_pose_errors(object_pts, pose_pr, pose_gt, K):
     pts3d_pr = transform_points_pose(object_pts, pose_pr)
     pts3d_gt = transform_points_pose(object_pts, pose_gt)
     obj_err = np.mean(np.linalg.norm(pts3d_pr - pts3d_gt, 2, 1))
+    """ TO PRINT THE POINTS (added by JCHAVEROT)
+        pts3d_pr = np.asarray(pts3d_pr)
+        pts3d_pr = np.array2string(pts3d_pr)
+        print(f"\npts3d prediction: {pts3d_pr}")
+        pts3d_gt = np.asarray(pts3d_gt)
+        pts3d_gt = np.array2string(pts3d_gt)
+        print(f"\npts3d ground truth: {pts3d_gt}")
+    """
 
     # eval pose errors
     dr = pose_pr[:3,:3] @ pose_gt[:3,:3].T
@@ -207,18 +215,18 @@ def compute_metrics_impl(object_pts, diameter, pose_gt_list, pose_pr_list, Ks, s
     pose_errs = np.asarray(pose_errs)
     results = {
         'add-0.1d': np.mean(obj_errs<(diameter*0.1)),
-        'add-0.15d': np.mean(obj_errs<(diameter*0.15)),
-        'add-0.2d': np.mean(obj_errs<(diameter*0.2)),
-        'add-0.25d': np.mean(obj_errs<(diameter*0.25)),
+        'add-0.15d': np.mean(obj_errs<(diameter*0.15)), # added by JCHAVEROT
+        'add-0.2d': np.mean(obj_errs<(diameter*0.2)),   # added by JCHAVEROT
+        'add-0.25d': np.mean(obj_errs<(diameter*0.25)), # added by JCHAVEROT
         'prj-5':np.mean(prj_errs<5),
     }
     results['obj_errs'] = np.array2string(obj_errs)
     if symmetric:
         obj_errs_sym = np.asarray(obj_errs_sym)
         results['add-0.1d-sym']=np.mean(obj_errs_sym<(diameter*0.1))
-        results['add-0.15d-sym']=np.mean(obj_errs_sym<(diameter*0.15))
-        results['add-0.2d-sym']=np.mean(obj_errs_sym<(diameter*0.2))
-        results['add-0.25d-sym']=np.mean(obj_errs_sym<(diameter*0.25))
+        results['add-0.15d-sym']=np.mean(obj_errs_sym<(diameter*0.15)) # added by JCHAVEROT
+        results['add-0.2d-sym']=np.mean(obj_errs_sym<(diameter*0.2))   # added by JCHAVEROT
+        results['add-0.25d-sym']=np.mean(obj_errs_sym<(diameter*0.25)) # added by JCHAVEROT
         results['obj_errs_sym'] = np.array2string(obj_errs_sym)
     return results
 
