@@ -2,7 +2,7 @@
 #SBATCH --chdir /scratch/izar/jchavero
 #SBATCH --partition=gpu
 #SBATCH --qos=gpu_free
-#SBATCH --gres=gpu:2
+#SBATCH --gres=gpu:1
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=1

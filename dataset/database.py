@@ -117,24 +117,26 @@ class SpaceCraftCVLabDatabase(BaseDatabase):
         self.object_vert = np.asarray([0,0,1], np.float32)
         self.img_id2depth_range = {}
         self.img_id2pose = {}
-        self.object_name, self.database_type = self.model_name.split('-')
+        _, self.database_type = self.model_name.split('-')
         # Track 1: SpaceCraft dataset camera intrinsic matrix
-        #self.K=np.array([[1406.708374, 0.000000, 512.000000], [0.000000, 1406.708374, 512.000000], [0.000000, 0.000000, 1.000000]], dtype=np.float32)
+        self.K=np.array([[1406.708374, 0.000000, 512.000000], [0.000000, 1406.708374, 512.000000], [0.000000, 0.000000, 1.000000]], dtype=np.float32)
         # Track 2: SwissCube dataset camera intrinsic matrix
-        self.K=np.array([[607.5730322397038, 0.000000, 512.000000], [0.000000, 607.5730322397038, 512.000000], [0.000000, 0.000000, 1.000000]], dtype=np.float32)
+        # self.K=np.array([[607.5730322397038, 0.000000, 512.000000], [0.000000, 607.5730322397038, 512.000000], [0.000000, 0.000000, 1.000000]], dtype=np.float32)
         if self.database_type == 'test':
             resize_factor = np.loadtxt(f"{SPACECRAFT_ROOT}/{self.model_name}/resize_factor.txt")
             self.K *= resize_factor
             self.K[2, 2] = 1
+
         # Note : This following portion of code is to uncomment when the ground truth poses are store in a JSON file,
         #        like for the SwissCube dataset.
-        with open(f'{SPACECRAFT_ROOT}/{self.model_name}/scene_gt.json', 'r') as file:
-            self.pose = json.load(file)
+        # with open(f'{SPACECRAFT_ROOT}/{self.model_name}/scene_gt.json', 'r') as file:
+        #     self.pose = json.load(file)
+
 
     def get_ply_model(self):
         fn = Path(f'{SPACECRAFT_ROOT}/{self.model_name}/{self.model_name}.pkl')
         if fn.exists(): return read_pickle(str(fn))
-        ply = plyfile.PlyData.read(f'{SPACECRAFT_ROOT}/{self.model_name}/{self.object_name}.ply')
+        ply = plyfile.PlyData.read(f'{SPACECRAFT_ROOT}/{self.model_name}/{self.model_name}.ply')
         data = ply.elements[0].data
         x = data['x']
         y = data['y']
@@ -149,43 +151,40 @@ class SpaceCraftCVLabDatabase(BaseDatabase):
 
     def get_image(self, img_id):
         # Track 1: SpaceCraft dataset image format
-        #return imread(f'{SPACECRAFT_ROOT}/{self.model_name}/images/{int(img_id):04}.png')
+        return imread(f'{SPACECRAFT_ROOT}/{self.model_name}/images/{int(img_id):04}.png')
         # Track 2: SwissCube dataset image format
-        return imread(f'{SPACECRAFT_ROOT}/{self.model_name}/images/{int(img_id):06}.jpg')
+        # return imread(f'{SPACECRAFT_ROOT}/{self.model_name}/images/{int(img_id):06}.jpg')
 
     def get_K(self, img_id):
         return np.copy(self.K)
 
     def get_pose(self, img_id):
         # Track 1: Gen6D's pose format
-        """
         if img_id in self.img_id2pose:
             return self.img_id2pose[img_id]
         else:
             pose = np.load(f'{SPACECRAFT_ROOT}/{self.model_name}/pose/pose{int(img_id)}.npy')
             self.img_id2pose[img_id] = pose
             return pose
-        """
-
         # Note : This following portion of code is to uncomment when the ground truth poses are store in a JSON file,
         #        like for the SwissCube dataset. Do not forget to comment track 1 above.
-
         # Track 2: SwissCube dataset json pose format
-        raw_pose = self.pose[f'{img_id}']
-        rot_mat = raw_pose['cam_R_m2c']
-        rot_mat = np.reshape(rot_mat, (3, 3))
-        transl_vec = raw_pose['cam_t_m2c']
-        pose = np.concatenate((rot_mat, transl_vec), axis=1)
-        return pose
+        # raw_pose = (self.pose[f'{int(img_id) + 1}'])[0]
+        # rot_mat = np.asarray(raw_pose['cam_R_m2c'])
+        # rot_mat = np.reshape(rot_mat, (3, 3))
+        # transl_vec = np.asarray(raw_pose['cam_t_m2c'])
+        # transl_vec = np.reshape(transl_vec, (3, 1))
+        # pose = np.concatenate((rot_mat, transl_vec), axis=1)
+        # return pose
 
     def get_img_ids(self):
         return self.img_ids.copy()
 
     def get_mask(self, img_id):
         # Track 1: SpaceCraft dataset image format
-        #return np.sum(imread(f'{SPACECRAFT_ROOT}/{self.model_name}/mask/{int(img_id):04}.png'),-1)>0
+        return np.sum(imread(f'{SPACECRAFT_ROOT}/{self.model_name}/mask/{int(img_id):04}.png'),-1)>0
         # Track 2: SwissCube dataset image format
-        return np.sum(imread(f'{SPACECRAFT_ROOT}/{self.model_name}/mask/{int(img_id):06}.png'),-1)>0
+        #return np.sum(imread(f'{SPACECRAFT_ROOT}/{self.model_name}/mask/{int(img_id):06}.png'),-1)>0
 
 GenMOP_ROOT='data/GenMOP'
 
