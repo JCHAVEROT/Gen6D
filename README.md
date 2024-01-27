@@ -1,4 +1,4 @@
-# Gen6D Setup Tutorial :rocket: (GPT generated from LaTeX code)
+# Gen6D Setup Tutorial :rocket:
 
 Welcome to the Gen6D setup tutorial! :raised_hands: This guide will walk you through the process of setting up the Scitas Izar environment to run Gen6D.
 
@@ -10,7 +10,11 @@ To begin, send an email requesting access to the Scitas servers. Unfortunately, 
 
 ### Step 2: Clone Gen6D Repository :octocat:
 
-Clone this Gen6D GitHub repository using the following link: [Gen6D Repository](https://github.com/JCHAVEROT/Gen6D/)
+Clone this repository:
+
+```bash
+git clone git@github.com:JCHAVEROT/Gen6D.git
+```
 
 ### Step 3: Pretrained Model Setup :floppy_disk:
 
@@ -38,7 +42,7 @@ Install all the necessary libraries for Gen6D to run, listed in the `requirement
 
 ### Step 8: Add your data :fire:
 
-You can find a compressed `zip` file containing well-organized SpaceCraft images as a template for testing purposes on [this link](TO BE DETERMINED).
+You can find a compressed `zip` file containing well-organized SpaceCraft images as a template for testing purposes on [this link](CURRENTLY BEING UPLOAD).
 
 ### Step 9: Submit Job :rocket:
 
