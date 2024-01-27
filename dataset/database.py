@@ -126,12 +126,10 @@ class SpaceCraftCVLabDatabase(BaseDatabase):
             resize_factor = np.loadtxt(f"{SPACECRAFT_ROOT}/{self.model_name}/resize_factor.txt")
             self.K *= resize_factor
             self.K[2, 2] = 1
-
         # Note : This following portion of code is to uncomment when the ground truth poses are store in a JSON file,
         #        like for the SwissCube dataset.
         # with open(f'{SPACECRAFT_ROOT}/{self.model_name}/scene_gt.json', 'r') as file:
         #     self.pose = json.load(file)
-
 
     def get_ply_model(self):
         fn = Path(f'{SPACECRAFT_ROOT}/{self.model_name}/{self.model_name}.pkl')
@@ -185,6 +183,7 @@ class SpaceCraftCVLabDatabase(BaseDatabase):
         return np.sum(imread(f'{SPACECRAFT_ROOT}/{self.model_name}/mask/{int(img_id):04}.png'),-1)>0
         # Track 2: SwissCube dataset image format
         #return np.sum(imread(f'{SPACECRAFT_ROOT}/{self.model_name}/mask/{int(img_id):06}.png'),-1)>0
+
 
 GenMOP_ROOT='data/GenMOP'
 

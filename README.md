@@ -1,172 +1,77 @@
-# Gen6D
+# Gen6D Setup Tutorial :rocket: (GPT generated from LaTeX code)
 
-Gen6D is able to estimate 6DoF poses for unseen objects like the following video.
+Welcome to the Gen6D setup tutorial! :raised_hands: This guide will walk you through the process of setting up the Scitas Izar environment to run Gen6D.
 
-![](assets/example.gif)
+## Step-by-Step Setup Instructions :clipboard:
 
-## [Project page](https://liuyuan-pal.github.io/Gen6D/) | [Paper](https://arxiv.org/abs/2204.10776)
+### Step 1: Request Permission :email:
 
-## Todo List
+To begin, send an email requesting access to the Scitas servers. Unfortunately, detailed instructions can't be provided here, as access privileges vary.
 
-- [x] Pretrained models and evaluation codes.
-- [x] Pose estimation on custom objects.
-- [x] Training codes.
+### Step 2: Clone Gen6D Repository :octocat:
 
-## Installation
+Clone this Gen6D GitHub repository using the following link: [Gen6D Repository](https://github.com/JCHAVEROT/Gen6D/)
 
-Required packages are list in `requirements.txt`. To determine how to install PyTorch along with CUDA, please refer to the [pytorch-documentation](https://pytorch.org/get-started/locally/)
+### Step 3: Pretrained Model Setup :floppy_disk:
 
-## Download
+Follow the instructions provided by the Gen6D authors to set up the model. This includes downloading the pretrained model and placing it in the designated location.
 
-1. Download pretrained models, GenMOP dataset and processed LINEMOD dataset at [here](https://connecthkuhk-my.sharepoint.com/:f:/g/personal/yuanly_connect_hku_hk/EkWESLayIVdEov4YlVrRShQBkOVTJwgK0bjF7chFg2GrBg?e=Y8UpXu).
-2. Organize files like
-```
-Gen6D
-|-- data
-    |-- model
-        |-- detector_pretrain
-            |-- model_best.pth
-        |-- selector_pretrain
-            |-- model_best.pth
-        |-- refiner_pretrain
-            |-- model_best.pth
-    |-- GenMOP
-        |-- chair 
-            ...
-    |-- LINEMOD
-        |-- cat 
-            ...
+### Step 4: Connect to EPFL Network :computer:
+
+Ensure you're connected to the EPFL internet network in person or via the EPFL VPN.
+
+### Step 5: Transfer Files to Scitas Izar :arrow_right_hook:
+
+Transfer the Gen6D files to your Scitas Izar session using the `rsync` command:
+
+```bash
+rsync -azP <your/path/to/Gen6D> <username>@izar.epfl.ch:~/
 ```
 
-## Evaluation
+### Step 6: Create Virtual Environment :gear:
 
+Create a virtual environment on your Scitas Izar session using the instructions provided [here](https://scitas-doc.epfl.ch/user-guide/software/python/python-venv/). Don't forget to activate it!
 
-```shell
-# Evaluate on the object TFormer from the GenMOP dataset
-python eval.py --cfg configs/gen6d_pretrain.yaml --object_name genmop/tformer
+### Step 7: Install Dependencies :package:
 
-# Evaluate on the object cat from the LINEMOD dataset
-python eval.py --cfg configs/gen6d_pretrain.yaml --object_name linemod/cat
+Install all the necessary libraries for Gen6D to run, listed in the `requirements.txt` file, except for openmpi, py-torch, py-torchvision, and cuda.
+
+### Step 8: Add your data :fire:
+
+You can find a compressed `zip` file containing well-organized SpaceCraft images as a template for testing purposes on [this link](TO BE DETERMINED).
+
+### Step 9: Submit Job :rocket:
+
+Compose your `execute.sh` file using the provided template and submit the job:
+
+```bash
+sbatch execute.sh
 ```
 
-Metrics about ADD-0.1d and Prj-5 will be printed on the screen.
+### Step 10: Retrieve Results :inbox_tray:
 
-### Qualitative results
+Find the pose estimation results in the `/Gen6D/data` folder. Retrieve them using the following commands:
 
-3D bounding boxes of estimated poses will be saved in `data/vis_final/gen6d_pretrain/genmop/tformer`.
-Ground-truth is drawn in green while prediction is drawn in blue.
-
-![](assets/results.jpg)
-
-Intermediate results about detection, viewpoint selection and pose refinement will be saved in `data/vis_inter/gen6d_pretrain/genmop/tformer`.
-
-![](assets/detection.jpg)
-
-This image shows detection results.
-
-
-![](assets/selection.jpg)
-
-This image shows viewpoint selection results.
-The first row shows the input image to the selector. 
-The second row shows the input images rotated by the estimated in-plane rotation (left column) or the ground-truth in-plane rotation(right column)
-Subsequent 5 rows show the predicted (left) or ground-truth (right) 5 reference images with nearest viewpoints to the input image.
-
-![](assets/refinement.jpg)
-
-This image shows the pose refinement process.
-The red bbox represents the input pose, the green one represents the ground-truth and the blue one represents the output pose for the current refinement step. 
-
-## Pose estimation on custom objects
-
-Please refer to [custom_object.md](custom_object.md)
-
-## Training
-1. Download processed [co3d](https://ai.facebook.com/datasets/CO3D-dataset/) data (co3d.tar.gz), [google scanned objects](https://arxiv.org/abs/2204.11918) data (google_scanned_objects.tar.gz) and [ShapeNet](http://shapenet.org/) renderings (shapenet.tar.gz) at [here](https://connecthkuhk-my.sharepoint.com/:f:/g/personal/yuanly_connect_hku_hk/EkWESLayIVdEov4YlVrRShQBkOVTJwgK0bjF7chFg2GrBg?e=Y8UpXu).
-2. Download [COCO](https://cocodataset.org/#download) 2017 training set.
-3. Organize files like
-```shell
-Gen6D
-|-- data
-    |-- GenMOP
-        |-- chair 
-            ...
-    |-- LINEMOD
-        |-- cat 
-            ...
-    |-- shapenet
-        |-- shapenet_cache
-        |-- shapenet_render
-        |-- shapenet_render_v1.pkl
-    |-- co3d_256_512
-        |-- apple
-            ...
-    |-- google_scanned_objects
-        |-- 06K3jXvzqIM
-            ...
-    |-- coco
-        |-- train2017
-```
-4. Train the detector
-```shell
-python train_model.py --cfg configs/detector/detector_train.yaml
-```
-5. Train the selector
-```shell
-python train_model.py --cfg configs/selector/selector_train.yaml
-```
-6. Prepare the validation data for training refiner
-```shell
-python prepare.py --action gen_val_set \
-                  --estimator_cfg configs/gen6d_train.yaml \
-                  --que_database linemod/cat \
-                  --que_split linemod_val \
-                  --ref_database linemod/cat \
-                  --ref_split linemod_val
-
-python prepare.py --action gen_val_set \
-                  --estimator_cfg configs/gen6d_train.yaml \
-                  --que_database genmop/tformer-test \
-                  --que_split all \
-                  --ref_database genmop/tformer-ref \
-                  --ref_split all 
-```
-This command will generate the information in the `data/val`, which will be used in producing validation data for the refiner.
-7. Train the refiner
-```shell
-python train_model.py --cfg configs/refiner/refiner_train.yaml
-```
-8. Evaluate all components together.
-```shell
-# Evaluate on the object TFormer from the GenMOP dataset
-python eval.py --cfg configs/gen6d_train.yaml --object_name genmop/tformer
-
-# Evaluate on the object cat from the LINEMOD dataset
-python eval.py --cfg configs/gen6d_train.yaml --object_name linemod/cat
+```bash
+rsync -azP <username>@izar.epfl.ch:~/Gen6D/data/performance.log <your/folder>
+rsync -azP <username>@izar.epfl.ch:~/Gen6D/data/eval <your/folder>
+rsync -azP <username>@izar.epfl.ch:~/Gen6D/data/vis_inter <your/folder>
+rsync -azP <username>@izar.epfl.ch:~/Gen6D/data/vis_final <your/folder>
 ```
 
-## Acknowledgements
-In this repository, we have used codes or datasets from the following repositories. 
-We thank all the authors for sharing great codes or datasets.
+### Pro Tip :bulb:
 
-- [PVNet](https://github.com/zju3dv/pvnet)
-- [hloc](https://github.com/cvg/Hierarchical-Localization)
-- [COLMAP](https://github.com/colmap/colmap)
-- [ShapeNet](http://shapenet.org/)
-- [COCO](https://cocodataset.org/#download)
-- [Co3D](https://ai.facebook.com/datasets/CO3D-dataset/)
-- [Google Scanned Objects](https://app.ignitionrobotics.org/GoogleResearch/fuel/collections/Google%20Scanned%20Objects)
-- [MVSNet_pl](https://github.com/kwea123/MVSNet_pl)
-- [AnnotationTools](https://github.com/luigivieira/Facial-Landmarks-Annotation-Tool)
+Once the job is submitted, access the console log in the `scratch/izar/<username>` folder using:
 
-We provide a paper list about recent generalizable 6-DoF object pose estimators at [https://github.com/liuyuan-pal/Awsome-generalizable-6D-object-pose](https://github.com/liuyuan-pal/Awsome-generalizable-6D-object-pose).
-
-## Citation
+```bash
+cd && cd /scratch/izar/<username>
 ```
-@inproceedings{liu2022gen6d,
-  title={Gen6D: Generalizable Model-Free 6-DoF Object Pose Estimation from RGB Images},
-  author={Liu, Yuan and Wen, Yilin and Peng, Sida and Lin, Cheng and Long, Xiaoxiao and Komura, Taku and Wang, Wenping},
-  booktitle={ECCV},
-  year={2022}
-}
-```
+
+## Additional Resources :books:
+
+For more commands to control your job, refer to the [Scitas Documentation](https://scitas-doc.epfl.ch/user-guide/using-clusters/running-jobs/).
+
+
+---
+
+README file generated by GPT from LaTeX source code.
