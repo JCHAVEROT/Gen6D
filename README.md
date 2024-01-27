@@ -22,7 +22,7 @@ Follow the instructions provided by the Gen6D authors to set up the model in the
 
 ### Step 4: Connect to EPFL Network :computer:
 
-Ensure you're connected to the EPFL internet network in person or via the EPFL VPN.
+Ensure you're connected to the EPFL internet directly or via the EPFL VPN.
 
 ### Step 5: Transfer Files to Scitas Izar :arrow_right_hook:
 
