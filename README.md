@@ -44,7 +44,7 @@ Install all the necessary libraries for Gen6D to run, listed in the `requirement
 
 You can find a compressed `zip` file containing Linemod images for the duck object, and also well-organized Spacecraft dataset images as a template for testing purposes on [this link](https://go.epfl.ch/Gen6D_data). Put what's inside into the `Gen6D/data` folder.
 
-### Step 9: Compose your execution file
+### Step 9: Compose your execution file :black_nib:
 
 In the folder `Gen6D/`, you can find a template `execute.sh` file, in which you put the commands you want to run (please do not modify the modules load). Notice that you need to replace the `<username>` section with yours.
 
