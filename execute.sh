@@ -17,7 +17,8 @@ echo "Launching the Virtual Environment"
 source ~/opt/izar1/venv-gcc/bin/activate
 
 echo "Navigating to the directory and executing the task"
-cd ~/Gen6D                                    
+cd ~/Gen6D 
+python eval.py --cfg configs/gen6d_pretrain.yaml --object_name linemod/duck --symmetric                                          
 python eval.py --cfg configs/gen6d_pretrain.yaml --object_name spacecraft/hubble --symmetric
 python eval.py --cfg configs/gen6d_pretrain.yaml --object_name spacecraft/jwst --symmetric
 python eval.py --cfg configs/gen6d_pretrain.yaml --object_name spacecraft/cosmos --symmetric
